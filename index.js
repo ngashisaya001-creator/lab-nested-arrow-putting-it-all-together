@@ -1,44 +1,53 @@
-//Implementing a login feature that allows a user to attempt login a limited number of times before the account becomes locked. This feature will demonstrate your skills in using nested functions and arrow functions, as well as managing scope.
-// Function to create a login tracker as an outer function
-function createLoginTracker(attemptCount) {
-  let userInfo = {
-    username: "user1",
-    password:"password123",
-  }
-
-
-
-  // Inner function to handle login attempts
-  const passwordAttempt = (username, password) => { // Using an arrow function for the inner function. 
-    incrementAttempt(); // Increment the attempt count each time a login attempt is made
-    if (username === userInfo.username && password === userInfo.password) { // Check if the provided credentials are correct
-      console.log("Login successful!"); // If login is successful, reset the attempt count
-      resetAttempt(); // Reset the attempt count after a successful login
-    } else { // If login fails, log the failure and the current attempt count
-      console.log("Login failed. Attempt " + attemptCount); 
-    }
-  }
-
-
-   const  returnMessage = () => { // Using an arrow function to return a message based on the attempt count
-    if (attemptCount >= 3) { // If the attempt count reaches 3 or more, lock the account
-      console.log("Account locked due to too many failed login attempts.");}} }
-  // Function to increment the attempt count
-  function incrementAttempt() { // Increment the attempt count each time a login attempt is made
+//Step 1: Define the createLoginTracker function (Outer Function)
+// This is the OUTER function that takes a userInfo object as a parameter
+// userInfo contains: { username: "user1", password: "password123" }
+// The outer function initializes the login tracking and returns the inner function
+function createLoginTracker(userInfo) {
+ 
+  // Initialize Login Tracking
+  // 'attemptCount' is a CLOSURE variable — it lives inside createLoginTracker
+  // but is accessible to the inner function via closure (scope chain)
+  // It starts at 0 and increments with each login attempt
+  let attemptCount = 0;
+ 
+  // Define and Return an Inner Arrow Function
+  // This inner arrow function is returned so the caller can invoke it
+  // each time a user tries to log in with a password attempt
+  // Arrow functions capture 'attemptCount' and 'userInfo' from the outer scope (closure)
+  const loginAttempt = (passwordAttempt) => {
+ 
+    // Step 2 - Increment attemptCount
+    // Each time this inner function is called, increase the attempt counter by 1
     attemptCount++;
-    returnMessage(); // Call the returnMessage function to check if the account should be locked after incrementing the attempt count
-  } 
-
-
-const tracker = createLoginTracker(0); // Simulating login attempts
-tracker.passwordAttempt("user1", "wrongpassword"); 
-tracker.passwordAttempt("user1", "wrongpassword");
-tracker.passwordAttempt("user1", "wrongpassword");
-tracker.passwordAttempt("user1", "wrongpassword");
-tracker.passwordAttempt("user1", "password123");
-console.log("Final attempt count: " + tracker.attemptCount); 
-
-
-module.exports = {
-  ...(typeof createLoginTracker !== 'undefined' && { createLoginTracker })
-}; 
+ 
+    // Step 2 - Account Lock Check
+    // If attemptCount exceeds 3, the account is locked
+    // No more login attempts are allowed — return lock message immediately
+    if (attemptCount > 3) {
+      return 'Account locked due to too many failed login attempts';
+    }
+ 
+    // Step 2 - Password Check
+    // Compare the passwordAttempt (what user typed) with userInfo.password (the real password)
+    if (passwordAttempt === userInfo.password) {
+ 
+      // Passwords match AND attemptCount is 3 or less — login is successful
+      return 'Login successful';
+ 
+    } else {
+ 
+      // Passwords do NOT match — return a message showing which attempt number this was
+      // Format: "Login failed" with the attempt number so user knows how many tries remain
+      return `Attempt ${attemptCount}: Login failed`;
+    }
+  };
+ 
+  // Return the inner arrow function so it can be called from outside
+  // This is what makes it a CLOSURE — loginAttempt keeps access to attemptCount and userInfo
+  // even after createLoginTracker has finished executing
+  return loginAttempt;
+}
+ 
+// Export the function so Jest tests can import and test it
+module.exports = { createLoginTracker };
+ 
